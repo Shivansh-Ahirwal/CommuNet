@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Built with ❤️ by Shivansh</title>
+    <style>
+        :root {
+            --wa-green: #075e54;
+            --wa-light-green: #25d366;
+            --wa-bg: #ece5dd;
+            --wa-chat-bg: #ffffff;
+            --wa-text: #2e2e2e;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Helvetica Neue', Helvetica, Arial, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: var(--wa-bg);
+            color: var(--wa-text);
+        }
+
+        .wa-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .wa-header {
+            background-color: var(--wa-green);
+            color: #fff;
+            font-size: 1.75rem;
+            font-weight: 600;
+            padding: 1rem 2rem;
+            text-align: center;
+            border-radius: 1rem 1rem 0 0;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .wa-chat-bubble {
+            background-color: var(--wa-chat-bg);
+            padding: 2rem 1.8rem;
+            border-radius: 0 0 1rem 1rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .wa-avatar {
+            background-color: var(--wa-light-green);
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
+        }
+
+        .wa-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .wa-message {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .wa-dev {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--wa-green);
+            letter-spacing: 0.5px;
+        }
+
+        .wa-tagline {
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        @media (max-width: 500px) {
+            .wa-header,
+            .wa-chat-bubble {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-container">
+        <div class="wa-header">
+            Communet Chat
+        </div>
+        <div class="wa-chat-bubble">
+            <div class="wa-avatar"><img src={% static 'images/robo.png' %}></div>
+            <div class="wa-message">
+                A full-stack chat application powered by Django and WebSockets.<br>
+                Designed for real-time conversations with performance and reliability in mind.
+            </div>
+            <div class="wa-dev">
+                Developed by Shivansh Ahirwal
+            </div>
+            <div class="wa-tagline">
+                Full Stack Dev • Django Expert • Problem Solver
+            </div>
+        </div>
+    </div>
+</body>
+</html>

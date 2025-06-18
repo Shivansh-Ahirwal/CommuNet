@@ -1,0 +1,82 @@
+<form id="create-group-form">
+    <ul style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+        {% for user in users %}
+            <li style="display: flex; align-items: center; padding: 10px 1.5rem; border-bottom: 1px solid #222; background: whitesmoke;">
+                <input type="checkbox" name="user_ids" value="{{ user.id }}" class="user-checkbox" style="margin-right: 12px; accent-color: #25d366;">
+                <span style="background: #075e54; color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px;">
+                    {{ user.username|first|upper }}
+                </span>
+                <span style="color: #Black;">{{ user.username|title }}</span>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <!-- Group Name Field (Hidden by default) -->
+    <div id="group-name-container" style="display: none; padding: 1rem 1.5rem;">
+        <label for="group_name" style="color: #25d366; font-weight: 500;">Group Name:</label>
+        <input type="text" id="group_name" name="group_name" placeholder="Enter group name"
+               style="width: 100%; padding: 0.5rem; border-radius: 6px; border: none; margin-top: 5px; background: #2a2f32; color: #fff;">
+    </div>
+
+    <div style="padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 10px; background: #222;">
+        <button type="submit" style="background: #25d366; color: #fff; border: none; border-radius: 6px; padding: 0.5rem 1.5rem; font-weight: 500; cursor: pointer;">
+            Create Group
+        </button>
+        <button id="close-modal-btn" type="button" style="background: #075e54; color: #fff; border: none; border-radius: 6px; padding: 0.5rem 1.5rem; font-weight: 500; cursor: pointer;">
+            Close
+        </button>
+    </div>
+</form>
+<script>
+    // Toggle group name input field
+   $(document).on('change', '.user-checkbox', function () {
+        const selectedCount = $('.user-checkbox:checked').length;
+
+        if (selectedCount > 1) {
+            $('#group-name-container').slideDown();
+        } else {
+            $('#group-name-container').slideUp();
+        }
+    });
+
+    // Create Group form submission
+    // Unbind any previous submit handler to prevent multiple bindings
+    $(document).off('submit', '#create-group-form');
+    $(document).on('submit', '#create-group-form', function (e) {
+        e.preventDefault();
+        var selected = $('.user-checkbox:checked').map(function () {
+            return $(this).val();
+        }).get();
+
+        console.log('selected', selected)
+
+        if (!selected.length) {
+            alert("Please select at least one user.");
+            return;
+        }
+
+        const group_name = $('#group_name').val();
+        if (selected.length > 1 && !group_name.trim()) {
+            alert("Please enter a group name.");
+            return;
+        }
+
+        $.ajax({
+            url: '{% url "create_group" %}',
+            type: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            data: {
+                user_ids: JSON.stringify(selected),
+                group_name: group_name
+            },
+            success: function (res) {
+                alert(res.message || "Group created successfully.");
+                $('#userModal').fadeOut();
+                window.location.href = '{% url "home" %}';
+            },
+            error: function () {
+                alert("Error creating group.");
+            }
+        });
+    });
+</script>

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    body {
+        background-color: #111b21;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #e9edef;
+        margin: 0;
+        padding: 0;
+    }
+    .login-container {
+        background: #202c33;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-width: 350px;
+        margin: 60px auto;
+        padding: 32px 28px;
+        text-align: center;
+    }
+    .login-container h2 {
+        color: #25d366;
+        margin-bottom: 24px;
+    }
+    .login-container input[type="text"],
+    .login-container input[type="password"] {
+        width: 90%;
+        padding: 10px 12px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 6px;
+        background: #2a3942;
+        color: #e9edef;
+        font-size: 16px;
+        outline: none;
+    }
+    .login-container input[type="text"]:focus,
+    .login-container input[type="password"]:focus {
+        background: #222e35;
+        border: 1px solid #25d366;
+    }
+    .login-container button {
+        background: #25d366;
+        color: #111b21;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 0;
+        width: 90%;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 18px;
+        transition: background 0.2s;
+    }
+    .login-container button:hover {
+        background: #20ba5a;
+    }
+    .login-container p {
+        margin-top: 20px;
+        color: #8696a0;
+    }
+    .login-container a {
+        color: #25d366;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .login-container a:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="login-container">
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+</div>
+{% endblock %}

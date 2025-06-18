@@ -1,0 +1,14 @@
+# Python virtual environment
+venv/
+ENV/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Static files
+static/
+staticfiles/
+assets/

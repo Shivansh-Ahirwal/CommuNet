@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    .chat-wrapper {
+        display: flex;
+        flex-direction: row;
+        height: 85vh;
+        background-color: #e5ddd5;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .chats-container {
+        width: 35%;
+        min-width: 220px;
+        background-color: #ffffff;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+        transition: width 0.3s;
+    }
+
+    .chat-header {
+        background-color: #075E54;
+        color: white;
+        padding: 0.9rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .chat-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+    }
+
+    .chat-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .chat-list-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f1f1;
+        text-decoration: none;
+        color: #000;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .chat-list-item:hover {
+        background-color: #f0f0f0;
+    }
+
+    .chat-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 1rem;
+        background-color: whitesmoke;
+    }
+
+    .chat-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+
+    .chat-name {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-message {
+        font-size: 0.875rem;
+        color: #555;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .chat-time {
+        font-size: 0.75rem;
+        color: #999;
+        white-space: nowrap;
+        margin-left: 0.5rem;
+    }
+
+    #chat-room-container {
+        width: 65%;
+        min-width: 0;
+        background-color: #efeae2;
+        overflow-y: auto;
+        transition: width 0.3s;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #create-group-btn {
+        background-color: #25D366;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        color: white;
+        font-size: 1.7rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Modal Responsive */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal > div {
+        background: #fff;
+        border-radius: 8px;
+        padding: 2rem;
+        min-width: 280px;
+        max-width: 95vw;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+        margin: auto;
+        position: relative;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 900px) {
+        .chat-wrapper {
+            flex-direction: column;
+            height: auto;
+        }
+        .chats-container, #chat-room-container {
+            width: 100%;
+            min-width: 0;
+            max-width: 100vw;
+        }
+        .chats-container {
+            border-right: none;
+            border-bottom: 1px solid #ddd;
+        }
+        #chat-room-container {
+            min-height: 300px;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .chat-wrapper {
+            flex-direction: column;
+            border-radius: 0;
+            height: 100vh;
+        }
+        .chats-container {
+            width: 100vw;
+            min-width: 0;
+            max-width: 100vw;
+            border-radius: 0;
+            border-bottom: 1px solid #ddd;
+        }
+        #chat-room-container {
+            width: 100vw;
+            min-width: 0;
+            max-width: 100vw;
+            border-radius: 0;
+        }
+        .chat-header {
+            padding: 0.7rem 1rem;
+            font-size: 1.1rem;
+        }
+        .chat-avatar {
+            width: 36px;
+            height: 36px;
+            margin-right: 0.7rem;
+        }
+        .modal > div {
+            padding: 1rem;
+            min-width: 90vw;
+            max-width: 98vw;
+        }
+    }
+</style>
+
+<div class="chat-wrapper">
+    <!-- Chat List (Left Panel) -->
+    <div class="modal" id="userModal">
+        <div>
+            <!-- Modal content will be injected here -->
+        </div>
+    </div>
+    <div class="chats-container">
+        <div class="chat-header">
+            <h2>Chats</h2>
+            <button id="create-group-btn" title="Create Group">+</button>
+            <script>
+                $('#create-group-btn').on('click', function() {
+                    $.ajax({
+                        url: "{% url 'fetch_users_modal' %}",
+                        type: 'GET',
+                        success: function(response) {
+                            $('#userModal').html(response.html).fadeIn();
+                        },
+                        error: function() {
+                            alert('Failed to load user list.');
+                        }
+                    });
+                });
+
+                // Delegate closing from dynamic content
+                $(document).on('click', '#close-modal-btn', function() {
+                    $('#userModal').fadeOut();
+                });
+            </script>
+        </div>
+        <ul class="chat-list">
+            {% for group in groups %}
+                <li>
+                    <a href="{% url 'chat_room' group.id %}" class="chat-list-item" data-chat-id="{{ group.id }}">
+                        <img src={% static 'images/robo.png' %} class="chat-avatar" alt="{{ group.name }}">
+                        <div class="chat-info">
+                            <div class="chat-name">{{ group.name }}</div>
+                            <div class="chat-message">
+                                {% if group.is_group %}
+                                    Group chat
+                                {% else %}
+                                    Direct chat
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="chat-time">
+                            {{ group.created_at|date:"M d, Y H:i" }}
+                        </div>
+                    </a>
+                </li>
+            {% empty %}
+                <li class="chat-list-item">No chats available.</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Chat Room (Right Panel) -->
+    <div id="chat-room-container">
+        {% include 'chat/thank_you.html' %}
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(function () {
+    $('.chat-list-item').on('click', function (e) {
+        e.preventDefault();
+        const url = $(this).attr('href');
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function (data) {
+                $('#chat-room-container').html(data);
+            },
+            error: function () {
+                $('#chat-room-container').html("<p>Error loading chat.</p>");
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

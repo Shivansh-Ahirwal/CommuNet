@@ -1,0 +1,170 @@
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background-color: #f0f2f5;
+        border-left: 1px solid #ccc;
+    }
+
+    .chat-room-header {
+        padding: 1rem 1.2rem;
+        background-color: #075E54;
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        border-top-right-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .messages {
+        flex-grow: 1;
+        padding: 1rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .message {
+        max-width: 65%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        word-wrap: break-word;
+        line-height: 1.5;
+        font-size: 0.95rem;
+        position: relative;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .message.outgoing {
+        align-self: flex-end;
+        background-color: #dcf8c6;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.incoming {
+        align-self: flex-start;
+        background-color: #fff;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message small {
+        font-size: 0.75rem;
+        color: #777;
+        margin-top: 5px;
+        display: block;
+        text-align: right;
+    }
+
+    #chat-form {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #ccc;
+        background-color: #ffffff;
+    }
+
+    #message-input {
+        flex-grow: 1;
+        padding: 0.6rem 0.9rem;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border-color 0.2s ease;
+    }
+
+    #message-input:focus {
+        border-color: #25d366;
+    }
+
+    .btn-success {
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 768px) {
+        .message {
+            max-width: 85%;
+        }
+
+        .chat-room-header {
+            font-size: 1.1rem;
+        }
+
+        #message-input {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<div class="chat-container">
+    <div class="chat-room-header">
+        {{ group.name }}
+    </div>
+
+    <div id="chat-messages" class="messages">
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="message {% if msg.sender_id == current_user_id %}outgoing{% else %}incoming{% endif %}">
+                    {% if msg.text %}
+                        <p>{{ msg.text }}</p>
+                    {% endif %}
+                    <small>{{ msg.timestamp|date:"H:i" }}</small>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center; color: #777;">No messages yet. Start the conversation!</p>
+        {% endif %}
+    </div>
+
+    <form id="chat-form" onsubmit="return sendMessage();">
+        <input type="text" id="message-input" class="form-control me-2" placeholder="Type a message..." autocomplete="off">
+        <button type="submit" class="btn btn-success">Send</button>
+    </form>
+</div>
+<script>
+    const chatId = "{{ chat_id }}";
+    const userId = "{{ current_user_id }}";
+
+    const socket = new WebSocket(
+        'wss://' + '4249-106-222-213-176.ngrok-free.app' + '/ws/chat/' + chatId + '/'
+    );
+
+    socket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(data.sender_id == userId ? 'outgoing' : 'incoming');
+
+        const p = document.createElement('p');
+        p.textContent = data.message;
+        messageDiv.appendChild(p);
+
+        const time = document.createElement('small');
+        time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        messageDiv.appendChild(time);
+
+        document.getElementById('chat-messages').appendChild(messageDiv);
+        document.getElementById('chat-messages').scrollTop = document.getElementById('chat-messages').scrollHeight;
+    };
+
+    function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        if (!message) return false;
+
+        socket.send(JSON.stringify({
+            'message': message,
+            'sender_id': userId
+        }));
+
+        input.value = '';
+        return false;
+    }
+</script>
+
