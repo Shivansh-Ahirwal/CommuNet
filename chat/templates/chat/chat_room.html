@@ -1,3 +1,4 @@
+{% load static %}
 <style>
     .chat-container {
         display: flex;
@@ -85,6 +86,17 @@
         font-weight: 600;
     }
 
+    .download-image-btn {
+        display: inline-block;
+        margin-top: 5px;
+        font-size: 1rem;
+        text-decoration: none;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
     @media (max-width: 768px) {
         .message {
             max-width: 85%;
@@ -94,7 +106,7 @@
 
 <div class="chat-container">
     <div class="chat-room-header">
-        {{ group.name }}
+        <div>{{ group.name }}</div>
     </div>
 
     <div id="chat-messages" class="messages">
@@ -105,6 +117,9 @@
                         <p>{{ msg.text }}</p>
                     {% endif %}
                     {% if msg.file_type == 'image' %}
+                        <a href="/files/{{ msg.file_id }}/" download title="Download Image" class="download-image-btn">
+                            <i class="fa fa-download" style="color:{% if msg.sender_id == current_user_id %}white{% else %}black{% endif %};"></i>
+                        </a>
                         <img src="/files/{{ msg.file_id }}/" style="max-width: 100%; border-radius: 8px; margin-top: 5px;" />
                     {% elif msg.file_type == 'video' %}
                         <video controls style="max-width: 100%; margin-top: 5px; border-radius: 8px;">
@@ -143,59 +158,45 @@
         messageDiv.classList.add('message');
         messageDiv.classList.add(data.sender_id == userId ? 'outgoing' : 'incoming');
 
-        if (data.message && data.message.trim() !== '') {
+        if (data.message && data.message.length > 0) {
             const p = document.createElement('p');
             p.textContent = data.message;
             messageDiv.appendChild(p);
         }
 
-        if (data.file_url && data.file_type === 'image') {
-            const placeholder = document.createElement('div');
-            placeholder.style.width = '220px';
-            placeholder.style.height = '220px';
-            placeholder.style.backgroundColor = '#eee';
-            placeholder.style.borderRadius = '8px';
-            placeholder.style.marginTop = '5px';
-            placeholder.style.position = 'relative';
-            placeholder.style.display = 'flex';
-            placeholder.style.alignItems = 'center';
-            placeholder.style.justifyContent = 'center';
-            placeholder.style.fontSize = '0.9rem';
-            placeholder.style.color = '#555';
-            placeholder.innerText = 'Image not downloaded';
+        if (data.file_url) {
+            if (data.file_type === 'image') {
+                const img = document.createElement('img');
+                img.src = data.file_url;
+                img.style.maxWidth = '100%';
+                img.style.borderRadius = '8px';
+                img.style.marginTop = '5px';
 
-            const downloadButton = document.createElement('button');
-            downloadButton.textContent = 'Download';
-            downloadButton.style.position = 'absolute';
-            downloadButton.style.bottom = '10px';
-            downloadButton.style.padding = '6px 12px';
-            downloadButton.style.border = 'none';
-            downloadButton.style.borderRadius = '6px';
-            downloadButton.style.backgroundColor = '#075e54';
-            downloadButton.style.color = '#fff';
-            downloadButton.style.cursor = 'pointer';
+                const downloadBtn = document.createElement('a');
+                downloadBtn.href = data.file_url;
+                downloadBtn.download = '';
+                downloadBtn.textContent = 'Download Image';
+                downloadBtn.style.display = 'inline-block';
+                downloadBtn.style.marginTop = '5px';
+                downloadBtn.style.fontSize = '0.85rem';
+                downloadBtn.style.color = '#007bff';
+                downloadBtn.style.textDecoration = 'underline';
+                downloadBtn.style.cursor = 'pointer';
 
-            placeholder.appendChild(downloadButton);
-            messageDiv.appendChild(placeholder);
-
-            downloadButton.addEventListener('click', async () => {
-                try {
-                    downloadButton.textContent = 'Downloading...';
-                    const response = await fetch(data.file_url);
-                    const blob = await response.blob();
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(blob);
-                    img.style.maxWidth = '100%';
-                    img.style.borderRadius = '8px';
-                    img.style.marginTop = '5px';
-                    placeholder.replaceWith(img);
-                } catch (err) {
-                    alert('Failed to download image');
-                    console.error(err);
-                }
-            });
+                messageDiv.appendChild(img);
+                messageDiv.appendChild(downloadBtn);
+            } else if (data.file_type === 'video') {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.style.maxWidth = '100%';
+                video.style.marginTop = '5px';
+                const source = document.createElement('source');
+                source.src = data.file_url;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                messageDiv.appendChild(video);
+            }
         }
-
 
         const time = document.createElement('small');
         time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

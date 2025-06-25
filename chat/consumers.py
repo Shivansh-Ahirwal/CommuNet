@@ -1,7 +1,8 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+from asgiref.sync import sync_to_async
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -87,7 +88,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "message": event.get("message", ""),
             "sender_id": event.get("sender_id"),
-            "file_url": event.get("file_url", None),  # ✅ include this
-            "file_type": event.get("file_type", None),  # ✅ include this
+            "file_url": event.get("file_url", None),
+            "file_type": event.get("file_type", None),
             "file_id": event.get("file_id", None),
         }))

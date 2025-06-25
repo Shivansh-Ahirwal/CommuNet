@@ -12,3 +12,8 @@ __pycache__/
 static/
 staticfiles/
 assets/
+
+# Migration files
+**/migrations/
+
+db.sqlite3

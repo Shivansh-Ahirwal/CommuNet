@@ -265,6 +265,10 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+function scrollToBottom() {
+    const messagesDiv = document.getElementById('chat-messages');
+    messagesDiv.scrollBottom = messagesDiv.scrollHeight;
+};
 $(function () {
     $('.chat-list-item').on('click', function (e) {
         e.preventDefault();

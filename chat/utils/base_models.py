@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from dotenv import load_dotenv
 import gridfs
-from django.db import models
 
 load_dotenv()
 
@@ -12,7 +11,7 @@ db = client[os.getenv("MONGO_DB_NAME")]
 fs = gridfs.GridFS(db)
 
 
-class BaseMongoModel(models.Model):
+class BaseMongoModel:
 
     collection = None
 

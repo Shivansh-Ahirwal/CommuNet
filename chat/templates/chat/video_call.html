@@ -1,0 +1,33 @@
+<!-- templates/video_call.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div id="video-call-container" style="display: none;">
+    <div class="video-container">
+        <video id="localVideo" autoplay muted playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+    
+    <div class="call-controls">
+        <button id="end-call-btn" class="btn btn-danger">End Call</button>
+        <button id="mute-btn" class="btn btn-secondary">Mute</button>
+        <button id="video-off-btn" class="btn btn-secondary">Video Off</button>
+    </div>
+</div>
+
+<div id="incoming-call-modal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h3>Incoming Call from <span id="caller-name"></span></h3>
+        <button id="accept-call-btn" class="btn btn-success">Accept</button>
+        <button id="reject-call-btn" class="btn btn-danger">Reject</button>
+    </div>
+</div>
+
+<input type="hidden" id="user-id" value="{{ request.user.id }}">
+<input type="hidden" id="callee-id" value=""> <!-- Set this when initiating call -->
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/video_call.js' %}"></script>
+{% endblock %}

@@ -189,6 +189,7 @@ def broadcast_file_message(chat_id, sender_id, file_id, file_type, text=None):
             'message': text or '',
             'sender_id': sender_id,
             'file_url': file_url,
+            'file_type': file_type,
             'file_id': file_id,
         }
     )

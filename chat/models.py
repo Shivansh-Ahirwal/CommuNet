@@ -66,3 +66,15 @@ class Message(BaseMongoModel):
             "created_at": datetime.datetime.utcnow(),
         }
         return self.insert_one(document)
+
+class VideoCallSession(models.Model):
+    caller = models.ForeignKey(User, related_name='caller_sessions', on_delete=models.CASCADE)
+    callee = models.ForeignKey(User, related_name='callee_sessions', on_delete=models.CASCADE)
+    session_id = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, default='initiated')  # initiated, ongoing, ended
+    
+    class Meta:
+        ordering = ['-created_at']
