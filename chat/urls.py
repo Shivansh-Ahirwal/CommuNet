@@ -17,5 +17,7 @@ urlpatterns = [
 
     # File Handling
     path('chat/upload/', views.upload_file, name='upload_file'),
-    path('files/<str:file_id>/', views.serve_file, name='serve_file')
+    path('files/<str:file_id>/', views.serve_file, name='serve_file'),
+
+    path('video/room/<str:room_id>/', views.start_video_room, name='video_room'),
 ]

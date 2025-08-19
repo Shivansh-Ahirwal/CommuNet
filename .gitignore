@@ -1,7 +1,8 @@
-# Python virtual environment
+# Python virtual environments
 venv/
 ENV/
 env/
+.venv/
 
 # Python cache files
 __pycache__/
@@ -16,4 +17,6 @@ assets/
 # Migration files
 **/migrations/
 
+# SQLite database files
 db.sqlite3
+*.sqlite3

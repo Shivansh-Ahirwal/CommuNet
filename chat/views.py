@@ -12,6 +12,7 @@ import uuid
 from .utils.base_models import BaseMongoModel
 from bson import ObjectId
 from .tasks import upload_file_to_gridfs
+import datetime
 
 
 @login_required(login_url='login')
@@ -23,7 +24,7 @@ def home(request):
     for group in groups:
         data.append({
             "id": group["_id"],
-            "name": group["name"],
+            "name": User.objects.filter(id__in=group['members']).exclude(id=request.user.id).first().username if not group["is_group"] else group["name"],
             "is_group": group["is_group"],
             "members": group["members"],
             "admin_id": group["admin_id"],
@@ -94,6 +95,8 @@ def logout_view(request):
 @login_required(login_url='login')
 def chat_room_view(request, chat_id):
     group = ChatGroup().get_data_by_id(chat_id)
+    if group and not group.get('is_group') and not group['name']:
+        group['name'] = User.objects.filter(id__in=group['members']).exclude(id=request.user.id)
     chat_id = group.get("_id") if group else None
 
     if not group:
@@ -143,7 +146,7 @@ def create_group(request):
         group = ChatGroup(
             _id=str(uuid.uuid4()),
             members=[current_user.id] + [user.id for user in members],
-            name=group_name,
+            name=group_name if is_group else None,
             is_group=is_group,
             admin_id=current_user.id if is_group else None
         )
@@ -193,3 +196,28 @@ def broadcast_file_message(chat_id, sender_id, file_id, file_type, text=None):
             'file_id': file_id,
         }
     )
+
+
+@login_required
+def start_video_room(request, room_id):
+    chat_id = room_id
+    user = request.user
+    chat = ChatGroup().get_data_by_id(_id=chat_id)
+
+    room_id = f"video_{chat_id}"
+
+    video_link = request.build_absolute_uri(f"/video/room/{room_id}/")
+    message_text = f"{user.username} started a video call. [Join here]({video_link})"
+
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        chat['name'],
+        {
+            'type': 'chat_message',
+            'message': message_text,
+            'sender_id': user.id,
+        }
+    )
+    # Optional: Notify all chat members via WebSocket here (or rely on chat updates)
+    
+    return redirect(f'/video/room/{room_id}/')

@@ -3,10 +3,28 @@
 
 {% block content %}
 <style>
+    #video-call-btn {
+        background-color: #25D366;
+        border: none;
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .chat-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
     .chat-wrapper {
         display: flex;
         flex-direction: row;
-        height: 85vh;
+        height: 75vh;
         background-color: #e5ddd5;
         border-radius: 8px;
         overflow: hidden;
@@ -42,6 +60,11 @@
         list-style: none;
         padding: 0;
         margin: 0;
+        overflow-y: auto;
+    }
+
+    #chat-list-modal {
+        height: 400px;
     }
 
     .chat-list-item {
@@ -52,6 +75,17 @@
         text-decoration: none;
         color: #000;
         transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .chat-list-modal-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        border-bottom: 1px solid #f1f1f1;
+        text-decoration: none;
+        color: #000;
+        background-color: white;
         cursor: pointer;
     }
 
@@ -120,30 +154,39 @@
         justify-content: center;
     }
 
-    /* Modal Responsive */
-    .modal {
-        display: none;
+    #modalBackDrop {
         position: fixed;
+        z-index: 1000;
         top: 0;
         left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.4);
-        z-index: 9999;
-        justify-content: center;
+        right: 0;
+        bottom: 0;
         align-items: center;
-    }
-    .modal > div {
-        background: #fff;
-        border-radius: 8px;
-        padding: 2rem;
-        min-width: 280px;
-        max-width: 95vw;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.2);
-        margin: auto;
-        position: relative;
+        background-color: rgba(0, 0, 0, 0.5);
     }
 
+    #userModal {
+        position: relative;
+        max-width: 50%;
+        margin: 25% 25%;
+    }
+
+    #videoParticipantSelection {
+        position: relative;
+        max-width: 50%;
+        margin: 10% 25% 25%;
+    }
+
+    .modal-header {
+        background-color: #075E54;
+        color: white;
+        text-align: center;
+        border-radius: 10px 10px 0px 0px;
+    }
+
+    .modal-actions {
+        border-radius: 0px 0px 10px 10px;
+    }
     /* Responsive Styles */
     @media (max-width: 900px) {
         .chat-wrapper {
@@ -192,44 +235,99 @@
             height: 36px;
             margin-right: 0.7rem;
         }
-        .modal > div {
-            padding: 1rem;
-            min-width: 90vw;
-            max-width: 98vw;
-        }
+
     }
 </style>
+<div id="modalBackDrop" style="display: none;">
 
-<div class="chat-wrapper">
-    <!-- Chat List (Left Panel) -->
-    <div class="modal" id="userModal">
-        <div>
-            <!-- Modal content will be injected here -->
+    <div class="modal" id="userModal" style="display: none;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
+            Create New Chat/Group
+            <a class="close-modal-btn" style="float: right; cursor: pointer;">
+                <i class="fa fa-times" style="color: white; font-size: 1.5rem;"></i>
+            </a>
+        </div>
+        <div class="modal-content" id="user-list-container">
+            <!-- Content will be loaded via AJAX -->
         </div>
     </div>
+
+    <div class="modal" id="videoParticipantSelection">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem;">
+            Create Video Chat Room
+            <a class="close-modal-btn" style="float: right; cursor: pointer;">
+                <i class="fa fa-times" style="color: white; font-size: 1.5rem;"></i>
+            </a>
+        </div>
+        <div class="modal-content" id="chat-list-container">
+            <ul class="chat-list" id="chat-list-modal">
+                {% for group in groups %}
+                    <li>
+                        <a href="{% url 'video_room' group.id %}" class="chat-list-modal-item" data-chat-id="{{ group.id }}">
+                            <img src="{% static 'images/robo.png' %}" class="chat-avatar" alt="{{ group.name }}">
+                            <div class="chat-info">
+                                <div class="chat-name">{{ group.name|title }}</div>
+                                <div class="chat-message">
+                                    {% if group.is_group %}
+                                        Group chat
+                                    {% else %}
+                                        Direct chat
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="chat-time">
+                                {{ group.created_at|date:"M d, Y H:i" }}
+                            </div>
+                        </a>
+                    </li>
+                {% empty %}
+                    <li class="chat-list-item">No chats available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+</div>
+<div class="chat-wrapper">
+    <!-- Chat List (Left Panel) -->
     <div class="chats-container">
         <div class="chat-header">
-            <h2>Chats</h2>
-            <button id="create-group-btn" title="Create Group">+</button>
-            <script>
-                $('#create-group-btn').on('click', function() {
-                    $.ajax({
-                        url: "{% url 'fetch_users_modal' %}",
-                        type: 'GET',
-                        success: function(response) {
-                            $('#userModal').html(response.html).fadeIn();
-                        },
-                        error: function() {
-                            alert('Failed to load user list.');
-                        }
+            <div><h2>Chats</h2></div>
+            <div class="chat-actions">
+                <button id="create-group-btn" title="Create Group">+</button>
+                <button id="video-call-btn" class="btn btn-success" title="Video Call">
+                    <i class="fa fa-video-camera" value="Join Video Room"></i>
+                </button>
+                <script>
+                    $('#create-group-btn').on('click', function() {
+                        $.ajax({
+                            url: "{% url 'fetch_users_modal' %}",
+                            type: 'GET',
+                            success: function(response) {
+                                $('#modalBackDrop').fadeIn();
+                                $('#userModal').fadeIn();
+                                $('#user-list-container').html(response.html).fadeIn();
+                            },
+                            error: function() {
+                                alert('Failed to load user list.');
+                            }
+                        });
                     });
-                });
 
-                // Delegate closing from dynamic content
-                $(document).on('click', '#close-modal-btn', function() {
-                    $('#userModal').fadeOut();
-                });
-            </script>
+                    // Delegate closing from dynamic content
+                    $('.close-modal-btn').on('click', function() {
+                        console.log('Close modal button clicked');
+                        $('#myModal').fadeOut();
+                        $('#videoParticipantSelection').fadeOut();
+                        $('#modalBackDrop').fadeOut();
+                    });
+
+                    $('#video-call-btn').on('click', function() {
+                        $('#modalBackDrop').fadeIn();
+                        $('#videoParticipantSelection').fadeIn();
+                    });
+                </script>
+            </div>
         </div>
         <ul class="chat-list">
             {% for group in groups %}
@@ -237,7 +335,7 @@
                     <a href="{% url 'chat_room' group.id %}" class="chat-list-item" data-chat-id="{{ group.id }}">
                         <img src={% static 'images/robo.png' %} class="chat-avatar" alt="{{ group.name }}">
                         <div class="chat-info">
-                            <div class="chat-name">{{ group.name }}</div>
+                            <div class="chat-name">{{ group.name|title }}</div>
                             <div class="chat-message">
                                 {% if group.is_group %}
                                     Group chat
@@ -282,6 +380,19 @@ $(function () {
             },
             error: function () {
                 $('#chat-room-container').html("<p>Error loading chat.</p>");
+            }
+        });
+    });
+    $('.chat-list-modal-item').on('click', function (e) {
+        e.preventDefault();
+        const url = $(this).attr('href');
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function () {
+            },
+            error: function () {
             }
         });
     });
